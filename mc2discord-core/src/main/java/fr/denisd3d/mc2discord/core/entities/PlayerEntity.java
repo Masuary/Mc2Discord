@@ -10,11 +10,17 @@ public class PlayerEntity extends Entity {
     public final String name;
     public final String displayName;
     public final UUID uuid;
+    private final Map<String, String> extraReplacements;
 
     public PlayerEntity(String name, String displayName, UUID uuid) {
+        this(name, displayName, uuid, Map.of());
+    }
+
+    public PlayerEntity(String name, String displayName, UUID uuid, Map<String, String> extraReplacements) {
         this.name = name;
         this.displayName = displayName.replaceAll("§.", "");
         this.uuid = uuid;
+        this.extraReplacements = extraReplacements;
     }
 
     @Override
@@ -22,5 +28,8 @@ public class PlayerEntity extends Entity {
         replacements.put(prefix + "name", this.name);
         replacements.put(prefix + "display_name", this.displayName);
         replacements.put(prefix + "uuid", this.uuid != null ? this.uuid.toString() : "");
+        for (var entry : extraReplacements.entrySet()) {
+            replacements.put(prefix + entry.getKey(), entry.getValue());
+        }
     }
 }

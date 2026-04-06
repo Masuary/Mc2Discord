@@ -24,25 +24,31 @@ public class ForgeEvents {
         return PlayerTeam.formatNameForTeam(player.getTeam(), player.getName()).getString();
     }
 
+    private static PlayerEntity createPlayerEntity(Player player) {
+        return new PlayerEntity(
+                player.getGameProfile().getName(),
+                getTeamFormattedName(player),
+                player.getGameProfile().getId(),
+                VaultHuntersData.getPlayerExtras(player)
+        );
+    }
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onServerChat(ServerChatEvent event) {
         if (event.isCanceled())
             return;
 
-        MinecraftEvents.onMinecraftChatMessageEvent(event.getMessage(), new PlayerEntity(event.getPlayer().getGameProfile().getName(),
-                getTeamFormattedName(event.getPlayer()), event.getPlayer().getGameProfile().getId()));
+        MinecraftEvents.onMinecraftChatMessageEvent(event.getMessage(), createPlayerEntity(event.getPlayer()));
     }
 
     @SubscribeEvent
     public static void onPlayerConnectEvent(PlayerEvent.PlayerLoggedInEvent event) {
-        MinecraftEvents.onPlayerConnectEvent(new PlayerEntity(event.getPlayer().getGameProfile().getName(),
-                getTeamFormattedName((Player) event.getEntity()), event.getPlayer().getGameProfile().getId()));
+        MinecraftEvents.onPlayerConnectEvent(createPlayerEntity((Player) event.getEntity()));
     }
 
     @SubscribeEvent
     public static void onPlayerDisconnectEvent(PlayerEvent.PlayerLoggedOutEvent event) {
-        MinecraftEvents.onPlayerDisconnectEvent(new PlayerEntity(event.getPlayer().getGameProfile().getName(),
-                getTeamFormattedName((Player) event.getEntity()), event.getPlayer().getGameProfile().getId()));
+        MinecraftEvents.onPlayerDisconnectEvent(createPlayerEntity((Player) event.getEntity()));
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -51,7 +57,7 @@ public class ForgeEvents {
             return;
 
         if (event.getEntity() instanceof Player player) {
-            MinecraftEvents.onPlayerDeathEvent(new PlayerEntity(player.getGameProfile().getName(), getTeamFormattedName(player), player.getGameProfile().getId()), new DeathEntity(event.getSource()
+            MinecraftEvents.onPlayerDeathEvent(createPlayerEntity(player), new DeathEntity(event.getSource()
                     .getMsgId(), player.getCombatTracker().getDeathMessage().getString(), player.getCombatTracker().getCombatDuration(), Optional.ofNullable(player.getCombatTracker().getKiller())
                     .map(livingEntity -> livingEntity.getDisplayName().getString())
                     .orElse(""), Optional.ofNullable(player.getCombatTracker().getKiller()).map(LivingEntity::getHealth).orElse(0.0f)));
@@ -61,10 +67,7 @@ public class ForgeEvents {
     @SubscribeEvent
     public static void onAdvancementEvent(AdvancementEvent event) {
         if (event.getAdvancement().getDisplay() != null && event.getAdvancement().getDisplay().shouldAnnounceChat()) {
-            MinecraftEvents.onAdvancementEvent(new PlayerEntity(event.getPlayer().getGameProfile().getName(),
-                    getTeamFormattedName((Player) event.getEntity()), event.getPlayer()
-                    .getGameProfile()
-                    .getId()), new AdvancementEntity(event.getAdvancement().getId().getPath(), event.getAdvancement().getChatComponent().getString(), event.getAdvancement()
+            MinecraftEvents.onAdvancementEvent(createPlayerEntity((Player) event.getEntity()), new AdvancementEntity(event.getAdvancement().getId().getPath(), event.getAdvancement().getChatComponent().getString(), event.getAdvancement()
                     .getDisplay()
                     .getTitle()
                     .getString(), event.getAdvancement().getDisplay().getDescription().getString()));
