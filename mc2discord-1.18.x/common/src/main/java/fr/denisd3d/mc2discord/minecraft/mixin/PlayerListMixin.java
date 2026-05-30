@@ -46,7 +46,13 @@ public class PlayerListMixin {
 
                     return (stackTrace[otherModMessage.class_index].getClassName() + "." + stackTrace[otherModMessage.class_index].getMethodName()).startsWith(otherModMessage.class_name);
                 })
-                .forEach(otherModMessage -> MessageManager.sendMessage(Collections.singletonList(otherModMessage.type), component.getString().replaceAll("§.", ""), MessageManager.default_username, MessageManager.default_avatar).subscribe());
+                .forEach(otherModMessage -> {
+                    String message = component.getString().replaceAll("§.", "");
+                    if (Mc2Discord.INSTANCE.config.misc.isMinecraftToDiscordBlacklisted(message))
+                        return;
+
+                    MessageManager.sendMessage(Collections.singletonList(otherModMessage.type), message, MessageManager.default_username, MessageManager.default_avatar).subscribe();
+                });
     }
 
     // Accounts

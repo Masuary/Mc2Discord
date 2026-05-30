@@ -7,6 +7,7 @@ import fr.denisd3d.config4j.DefaultValue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class Misc {
     @Path("relay_bot_messages")
@@ -45,6 +46,11 @@ public class Misc {
     @PreserveNotNull
     public List<String> broadcast_commands;
 
+    @Path("minecraft_to_discord_blacklist")
+    @Comment("config.misc.minecraft_to_discord_blacklist.comment")
+    @PreserveNotNull
+    public List<String> minecraft_to_discord_blacklist = new ArrayList<>();
+
     @Path("verbose_other_mods_messages")
     @Comment("config.misc.verbose_other_mods_messages.comment")
     @PreserveNotNull
@@ -58,6 +64,16 @@ public class Misc {
     @Path("comment")
     public String comment;
 
+    public boolean isMinecraftToDiscordBlacklisted(String message) {
+        if (message == null || minecraft_to_discord_blacklist == null || minecraft_to_discord_blacklist.isEmpty())
+            return false;
+
+        String lowerCaseMessage = message.toLowerCase(Locale.ROOT);
+        return minecraft_to_discord_blacklist.stream()
+                .filter(entry -> entry != null && !entry.trim().isEmpty())
+                .map(entry -> entry.trim().toLowerCase(Locale.ROOT))
+                .anyMatch(lowerCaseMessage::contains);
+    }
 
     public static class OtherModMessage {
         @Path("class_name")

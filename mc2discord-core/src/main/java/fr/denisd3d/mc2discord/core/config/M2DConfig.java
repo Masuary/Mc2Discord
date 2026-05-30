@@ -95,6 +95,10 @@ public class M2DConfig extends Config4J {
             this.misc.broadcast_commands = List.of("say", "me", "tellraw");
         }
 
+        if (this.misc.minecraft_to_discord_blacklist == null) {
+            this.misc.minecraft_to_discord_blacklist = List.of();
+        }
+
         if (this.misc.other_mods_messages.isEmpty()) {
             this.misc.other_mods_messages.add(new Misc.OtherModMessage());
         }

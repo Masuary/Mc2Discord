@@ -89,6 +89,7 @@ public class Mc2DiscordMinecraft {
 
             if (message == null) return;
             if (message.isEmpty()) return;
+            if (Mc2Discord.INSTANCE.config.misc.isMinecraftToDiscordBlacklisted(message)) return;
 
 
             if (parseResults.getContext().getSource().getEntity() instanceof ServerPlayer serverPlayer) {
