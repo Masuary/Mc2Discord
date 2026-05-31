@@ -18,7 +18,7 @@ plugins {
 }
 
 val sharedProperties = readProperties(file("../shared.properties"))
-val modVersion: String = System.getenv("INPUT_VERSION") ?: "0.0.0-dev"
+val modVersion: String = System.getenv("INPUT_VERSION") ?: sharedProperties["modVersion"]!! as String
 
 subprojects {
     version = modVersion
