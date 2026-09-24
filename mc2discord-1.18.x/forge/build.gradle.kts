@@ -1,3 +1,6 @@
+import groovy.json.JsonSlurper
+import java.util.zip.ZipFile
+
 plugins {
     id("net.minecraftforge.gradle")
     id("org.spongepowered.mixin")
@@ -65,8 +68,15 @@ minecraft {
 sourceSets.main.get().resources.srcDir("src/generated/resources")
 
 tasks {
-    withType<JavaCompile>().configureEach {
+    compileJava {
         source(project(":common").sourceSets.main.get().allSource)
+        // MixinGradle deletes AP outputs before compilation, even when incremental javac processes no mixins.
+        options.isIncremental = false
+        outputs.files(
+            layout.buildDirectory.file("tmp/compileJava/compileJava-refmap.json"),
+            layout.buildDirectory.file("tmp/compileJava/${sharedProperties["modId"]}.refmap.json"),
+            layout.buildDirectory.file("tmp/compileJava/compileJava-mappings.tsrg")
+        )
     }
 
     processResources {
@@ -113,6 +123,45 @@ tasks {
 
     reobf {
         create("shadowJar")
+    }
+
+    val verifyForgeMixins by registering {
+        group = "verification"
+        description = "Checks that the production Forge JAR contains the required mixin mappings."
+        dependsOn("reobfShadowJar")
+        val productionJar = shadowJar.flatMap { it.archiveFile }
+        inputs.file(productionJar)
+
+        doLast {
+            ZipFile(productionJar.get().asFile).use { archive ->
+                val referenceMapName = "${sharedProperties["modId"]}.refmap.json"
+                val referenceMapEntry = archive.getEntry(referenceMapName)
+                    ?: error("Production Forge JAR is missing $referenceMapName")
+                val referenceMap = archive.getInputStream(referenceMapEntry).reader().use {
+                    JsonSlurper().parse(it) as Map<*, *>
+                }
+                val mappings = referenceMap["mappings"] as? Map<*, *>
+                    ?: error("$referenceMapName has no mappings")
+                val requiredTargets = mapOf(
+                    "PlayerListMixin" to listOf("broadcastMessage(", "canPlayerLogin("),
+                    "CommandFunctionCommandEntryMixin" to listOf("execute(")
+                )
+                requiredTargets.forEach { (mixin, targets) ->
+                    val className = "fr/denisd3d/mc2discord/minecraft/mixin/$mixin"
+                    val classMappings = mappings[className] as? Map<*, *>
+                        ?: error("$referenceMapName is missing $mixin mappings")
+                    targets.forEach { target ->
+                        check(classMappings.entries.any {
+                            it.key.toString().startsWith(target) && it.value.toString().contains(";m_")
+                        }) { "$referenceMapName is missing the production mapping for $mixin.$target" }
+                    }
+                }
+            }
+        }
+    }
+
+    check {
+        dependsOn(verifyForgeMixins)
     }
 
     // Workaround for SpongePowered/MixinGradle#38

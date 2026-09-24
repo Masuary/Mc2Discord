@@ -136,7 +136,12 @@ public class LifecycleEvents {
         });
         Flux<Member> guildMemberFlux = guilds.flatMap(Guild::getMembers).doOnError(throwable -> Mc2Discord.INSTANCE.errors.add("Missing SERVER MEMBERS intent, cannot cache members list")).doOnNext(M2DUtils::cacheMember);
 
-        Mono.when(guildEmojiFlux, guildChannelFlux, guildMemberFlux).doOnSuccess(unused -> LifecycleEvents.mcOrDiscordReady()).subscribe();
+        Mono.when(guildEmojiFlux, guildChannelFlux, guildMemberFlux)
+                .doOnSuccess(unused -> LifecycleEvents.mcOrDiscordReady())
+                .subscribe(unused -> {}, failure -> {
+                    Mc2Discord.INSTANCE.errors.add("Failed to initialize Discord channel, emoji, and member caches; check the server log");
+                    Mc2Discord.LOGGER.error("Failed to initialize Discord channel, emoji, and member caches", failure);
+                });
     }
 
     public static void mcOrDiscordReady() {

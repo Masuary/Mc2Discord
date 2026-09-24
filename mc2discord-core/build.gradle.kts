@@ -9,6 +9,8 @@ repositories {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
+
     // Discord4J
     api(group = "com.discord4j", name = "discord4j-core", version = "3.3.0-RC1")
 

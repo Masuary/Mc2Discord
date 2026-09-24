@@ -45,6 +45,18 @@ You can also watch the video tutorial:
 <img src="https://user-images.githubusercontent.com/35769613/177222845-63e42dd7-1486-4463-9861-f8c53fa8bb84.png" width="50%">
 </a>
 
+## Building this fork for Forge 1.18.2
+Use Java 17 and run:
+
+```sh
+cd mc2discord-1.18.x
+./gradlew :mc2discord-core:test :forge:build
+```
+
+The installable JAR is in `forge/build/libs/`; use the file without the `-slim` suffix.
+The build runs `verifyForgeMixins` to reject a production JAR with missing mixin reference maps or method mappings.
+Mixin compilation uses a full compiler pass because MixinGradle removes generated mappings before compilation; an incremental pass that skips the mixin sources can otherwise lose them.
+
 ## Misc
 ### Links
  * Discord (Support): https://discord.gg/rzzd76c

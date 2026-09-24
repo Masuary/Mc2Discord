@@ -52,6 +52,7 @@ public class Mc2Discord {
         }
 
         DiscordClient.builder(this.config.general.token)
+                .setJacksonResources(DiscordJsonCompatibility.createJacksonResources())
                 .onClientResponse(
                         ResponseFunction.retryWhen(
                                 RouteMatcher.any(),

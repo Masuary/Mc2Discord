@@ -51,6 +51,7 @@ subprojects {
     }
 
     tasks.processResources {
+        inputs.property("modVersion", modVersion)
         filesMatching(listOf("pack.mcmeta", "fabric.mod.json", "META-INF/mods.toml", "*.mixins.json")) {
             expand(
                 rootProject.properties +
